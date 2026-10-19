@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>💖 月月专属恋爱系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", "PingFang SC", sans-serif;
+        }
+
+        body {
+            overflow-x: hidden;
+            transition: background 0.6s, color 0.6s;
+        }
+
+        :root {
+            --main: #ff7cb8;
+            --main-light: #ffb8d4;
+            --bg: #050514;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 124, 184, 0.4);
+        }
+
+        .theme-sakura {
+            --main: #d86b8c;
+            --main-light: #ffd1dc;
+            --bg: #fff7f9;
+            --card-bg: rgba(255, 240, 245, 0.7);
+            --card-border: rgba(216, 107, 140, 0.35);
+            color: #333;
+        }
+
+        .theme-ocean {
+            --main: #57b8ff;
+            --main-light: #b2e0ff;
+            --bg: #051022;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(87, 184, 255, 0.4);
+        }
+
+        body {
+            background: var(--bg);
+            color: #fff;
+        }
+
+        #loveCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .global-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s;
+        }
+
+        .loading-text {
+            font-size: 28px;
+            color: var(--main);
+        }
+
+        .login-wrapper {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-card {
+            background: linear-gradient(145deg, #30164b, #131c42);
+            padding: 36px;
+            border-radius: 24px;
+            border: 2px solid var(--main);
+            box-shadow: 0 0 40px #ff559977;
+            text-align: center;
+            width: 90%;
+            max-width: 420px;
+        }
+
+        .login-card h2 {
+            font-size: 32px;
+            color: var(--main-light);
+            margin-bottom: 12px;
+        }
+
+        .login-card .subtitle {
+            color: var(--main-light);
+            opacity: 0.8;
+            margin-bottom: 32px;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: 0;
+            font-size: 17px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #ff4d82, #ff7cb8);
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-card button:hover {
+            transform: scale(1.02);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        header {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            color: var(--main-light);
+            margin-bottom: 10px;
+        }
+
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .time-card {
+            background: rgba(255, 110, 170, 0.1);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .time-card h3 {
+            color: var(--main-light);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .time-card .big-num {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .theme-switch-box {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .theme-switch-box button {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 0;
+            background: #222;
+            color: #fff;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 6px 0;
+            margin-bottom: 16px;
+            scrollbar-width: none;
+        }
+
+        .tab-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-nav button {
+            padding: 11px 14px;
+            border: 0;
+            border-radius: 12px;
+            background: #212446;
+            color: var(--main-light);
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.25s;
+        }
+
+        .tab-nav button.active {
+            background: linear-gradient(90deg, #ff4d82, #ff7cb8);
+            color: #fff;
+        }
+
+        .tab-panel {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .wish-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .stat-item {
+            background: #212446;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .wish-item {
+            padding: 12px;
+            border-bottom: 1px solid #ffffff22;
+        }
+
+        .wish-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .wish-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .wish-complete {
+            text-decoration: line-through;
+            color: #aaaaaa;
+        }
+
+        .sub-task-box {
+            padding-left: 28px;
+            margin-top: 8px;
+        }
+
+        .sub-item {
+            display: flex;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 14px;
+        }
+
+        .add-wish-area {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .add-wish-area input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 0;
+            outline: none;
+            min-width: 140px;
+        }
+
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            background: #111830;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .msg-me {
+            text-align: right;
+            margin: 6px 0;
+        }
+
+        .msg-yueyue {
+            text-align: left;
+            margin: 6px 0;
+        }
+
+        .msg-bubble {
+            display: inline-block;
+            padding: 10px 12px;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .msg-me .msg-bubble {
+            background: var(--main);
+            color: #fff;
+            border-top-right-radius: 2px;
+        }
+
+        .msg-yueyue .msg-bubble {
+            background: #333858;
+            color: #fff;
+            border-top-left-radius: 2px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 0;
+            outline: none;
+        }
+
+        .msg-card {
+            background: rgba(255, 185, 220, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+            margin: 10px 0;
+        }
+
+        .msg-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: 0;
+            outline: none;
+            margin: 10px 0;
+        }
+
+        .del-btn {
+            padding: 4px 8px;
+            background: #992244;
+            border: 0;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .diary-textarea {
+            width: 100%;
+            min-height: 140px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 0;
+            outline: none;
+            margin: 10px 0;
+        }
+
+        .chart-wrap {
+            width: 100%;
+            height: 280px;
+            padding: 10px;
+        }
+
+        .mood-box {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .achi-item {
+            background: #212446;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            border: 1px dashed var(--card-border);
+        }
+
+        .achi-unlock {
+            border: solid var(--main);
+            background: rgba(255, 124, 184, 0.15);
+        }
+
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .album-box {
+            height: 120px;
+            background: #212446;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--main-light);
+            border: 1px dashed var(--card-border);
+            overflow: hidden;
+        }
+
+        .album-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .vote-card {
+            background: #212446;
+            border-radius: 12px;
+            padding: 14px;
+            margin: 10px 0;
+        }
+
+        .capsule-box {
+            border: 1px dashed var(--main-light);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .lot-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #412258, #202b55);
+            border-radius: 14px;
+            text-align: center;
+        }
+
+        .btn-pink {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 10px;
+            background: #ff6397;
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn-reset {
+            background: #773355;
+        }
+
+        .firework-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .firework-modal.show {
+            display: flex;
+        }
+
+        .firework-text {
+            font-size: 36px;
+            color: var(--main-light);
+            text-shadow: 0 0 15px #ff4d82;
+        }
+
+        .notify-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff5788;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            z-index: 9997;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-text">正在加载月月的恋爱宇宙💖</div>
+    </div>
+    <canvas id="loveCanvas"></canvas>
+    <div class="notify-toast" id="toast"></div>
+
+    <div class="login-wrapper" id="loginBox">
+        <div class="login-card">
+            <h2>月月 · 恋爱系统</h2>
+            <div class="subtitle">仅属于你们二人的专属空间</div>
+            <input type="password" id="pwdInput" placeholder="请输入系统密码">
+            <button onclick="loginCheck()">解锁进入</button>
+        </div>
+    </div>
+
+    <div class="global-container hidden" id="mainPage">
+        <header>
+            <h1>💖 月月 · 终极恋爱管理系统 💖</h1>
+            <p id="sweetSentence"></p>
+            <div class="time-grid">
+                <div class="time-card">
+                    <h3>相识天数</h3>
+                    <div class="big-num" id="dayCount">0 天</div>
+                </div>
+                <div class="time-card">
+                    <h3>距离月月生日</h3>
+                    <div class="big-num" id="birthdayCount">0 天</div>
+                </div>
+                <div class="time-card">
+                    <h3>爱情积分</h3>
+                    <div class="big-num" id="scoreNum">0</div>
+                </div>
+            </div>
+            <div class="theme-switch-box">
+                <button onclick="changeTheme('')">暗夜粉</button>
+                <button onclick="changeTheme('theme-sakura')">樱花</button>
+                <button onclick="changeTheme('theme-ocean')">深海蓝</button>
+            </div>
+        </header>
+
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="wishList">✅100件心愿</button>
+            <button class="tab-btn" data-tab="chatRoom">💬双人聊天</button>
+            <button class="tab-btn" data-tab="messageBoard">💌留言板</button>
+            <button class="tab-btn" data-tab="secretDiary">🔐加密日记</button>
+            <button class="tab-btn" data-tab="moodChart">📈心情曲线</button>
+            <button class="tab-btn" data-tab="lotDraw">🎋每日抽签</button>
+            <button class="tab-btn" data-tab="achievement">🏅成就墙</button>
+            <button class="tab-btn" data-tab="photoAlbum">🖼️相册</button>
+            <button class="tab-btn" data-tab="voteBox">🗳️双人投票</button>
+            <button class="tab-btn" data-tab="timeCapsule">⏳时间胶囊</button>
+            <button class="tab-btn" data-tab="systemSet">⚙️设置</button>
+        </div>
+
+        <div class="tab-panel active" id="wishList">
+            <h2>100件想和月月一起完成的小事</h2>
+            <div class="wish-stats">
+                <div class="stat-item">总任务：<span id="wishTotal">0</span></div>
+                <div class="stat-item">已完成：<span id="wishDone">0</span></div>
+                <div class="stat-item">进度：<span id="wishPercent">0%</span></div>
+            </div>
+            <div id="wishListBox"></div>
+            <div class="add-wish-area">
+                <input id="newWishInput" placeholder="添加愿望">
+                <input id="subTaskInput" placeholder="子任务(可选)">
+                <button class="btn-pink" onclick="addNewWish()">添加愿望</button>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="chatRoom">
+            <h2>💬双人聊天（本地会话）</h2>
+            <div class="chat-box" id="chatBox"></div>
+            <div class="chat-input-area">
+                <select id="chatSender">
+                    <option value="me">我</option>
+                    <option value="yueyue">月月</option>
+                </select>
+                <input id="chatInput" placeholder="输入消息">
+                <button class="btn-pink" onclick="sendChatMsg()">发送</button>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="messageBoard">
+            <h2>💌双人留言板（可上传图片）</h2>
+            <select id="msgSender">
+                <option value="me">我</option>
+                <option value="yueyue">月月</option>
+            </select>
+            <textarea class="msg-input" id="msgContent" placeholder="写下想对对方说的话"></textarea>
+            <input type="file" id="msgImgUpload" accept="image/*">
+            <button class="btn-pink" onclick="addMessage()">发送留言</button>
+            <div id="msgBox"></div>
+        </div>
+
+        <div class="tab-panel" id="secretDiary">
+            <h2>🔐私密恋爱日记</h2>
+            <textarea class="diary-textarea" id="diaryInput" placeholder="记录今日的甜蜜故事"></textarea>
+            <button class="btn-pink" onclick="saveDiary()">保存日记</button>
+            <div id="diaryList"></div>
+        </div>
+
+        <div class="tab-panel" id="moodChart">
+            <h2>📈双人心情记录趋势</h2>
+            <div class="mood-box">
+                <button class="btn-pink" onclick="addMood(5)">🥰开心+5</button>
+                <button class="btn-pink" onclick="addMood(3)">😊不错+3</button>
+                <button class="btn-pink" onclick="addMood(1)">😐一般+1</button>
+                <button class="btn-pink" onclick="addMood(-2)">😔低落-2</button>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="moodCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="lotDraw">
+            <h2>🎋今日恋爱运势抽签</h2>
+            <div class="lot-card" id="lotResult">点击抽签，获取今日和月月的恋爱运势</div>
+            <br>
+            <button class="btn-pink" onclick="drawLot()">抽取今日签文</button>
+        </div>
+
+        <div class="tab-panel" id="achievement">
+            <h2>🏅恋爱成就打卡墙</h2>
+            <div class="achievement-grid" id="achiBox"></div>
+        </div>
+
+        <div class="tab-panel" id="photoAlbum">
+            <h2>🖼️情侣相册</h2>
+            <input type="file" id="imgUpload" accept="image/*" multiple onchange="uploadPhoto()">
+            <div class="album-grid" id="albumBox"></div>
+        </div>
+
+        <div class="tab-panel" id="voteBox">
+            <h2>🗳️双人投票（约会/晚饭选择）</h2>
+            <input id="voteTitle" placeholder="投票主题">
+            <br>
+            <input id="opt1" placeholder="选项1">
+            <input id="opt2" placeholder="选项2">
+            <button class="btn-pink" onclick="createVote()">创建投票</button>
+            <div id="voteList"></div>
+        </div>
+
+        <div class="tab-panel" id="timeCapsule">
+            <h2>⏳时间胶囊（设定开启日期）</h2>
+            <div class="capsule-box">
+                <input type="date" id="openDate">
+                <textarea class="diary-textarea" id="capsuleText" placeholder="写给未来的彼此"></textarea>
+                <button class="btn-pink" onclick="saveCapsule()">封存胶囊</button>
+                <div id="capsuleList"></div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="systemSet">
+            <h2>⚙️系统管理</h2>
+            <p>背景音乐：没那么简单</p>
+            <audio id="bgAudio" loop>
+                <source src="https://music.163.com/song/media/outer/url?id=208378.mp3" type="audio/mpeg">
+            </audio>
+            <button class="btn-pink" onclick="toggleAudio()">播放/暂停BGM</button>
+            <br><br>
+            <p>修改登录密码</p>
+            <input id="newPwdInput" placeholder="输入新密码">
+            <button class="btn-pink" onclick="changePassword()">确认修改密码</button>
+            <br><br>
+            <input type="file" id="importFile" accept=".json">
+            <button class="btn-pink" onclick="importData()">导入备份数据</button>
+            <br><br>
+            <button class="btn-pink btn-reset" onclick="exportAllData()">导出全部恋爱数据(JSON)</button>
+            <button class="btn-pink btn-reset" onclick="confirmClear()">清空全部数据</button>
+        </div>
+    </div>
+
+    <div class="firework-modal" id="fireworkModal">
+        <div class="firework-text">🎂 月月生日快乐！🎂</div>
+    </div>
+
+<script>
+const CONFIG = {
+    password: "yueyue123",
+    meetDate: new Date("2026-10-13"),
+    birthday: new Date("2026-10-23"),
+    sweetSentences: [
+        "月月，遇见你的每一天都闪闪发光",
+        "世界那么大，我只想和月月慢慢走",
+        "岁岁年年，月月皆在我身旁",
+        "所有温柔与浪漫，全部留给月月"
+    ],
+    lotList: [
+        { level: "上上签", text: "今日和月月甜蜜加倍，所有心愿慢慢靠近" },
+        { level: "上上签", text: "好运降临，适合和月月约会出行" },
+        { level: "上吉", text: "平平淡淡的陪伴，就是最好的浪漫" },
+        { level: "吉", text: "小矛盾会消散，多和月月好好聊天" },
+        { level: "中平", text: "安稳日常，细心对待彼此" },
+        { level: "小吉", text: "适合给月月准备小惊喜，收获感动" }
+    ]
+};
+
+function getDefaultData() {
+    return {
+        wishList: [
+            { text: "和月月一起看一次海边日出", done: false, subTask: "查日出时间" },
+            { text: "和月月去看一场演唱会", done: false, subTask: "抢票" },
+            { text: "和月月一起去旅行", done: false, subTask: "规划目的地" },
+            { text: "和月月拍一组情侣写真", done: false, subTask: "挑选照相馆" },
+            { text: "和月月窝在家里看通宵电影", done: false, subTask: "准备零食" },
+            { text: "给月月过一次盛大生日", done: false, subTask: "准备礼物" },
+            { text: "一起去游乐园坐过山车", done: false, subTask: "买门票" },
+            { text: "亲手给月月做一顿晚饭", done: false, subTask: "买菜" },
+            { text: "一起堆雪人", done: false, subTask: "等下雪" },
+            { text: "牵手走很长很长的夜路", done: false, subTask: "夜晚散步" }
+        ],
+        chat: [],
+        messages: [],
+        diary: [],
+        mood: [],
+        score: 0,
+        achievement: [
+            { name: "初次相遇", desc: "遇见月月", unlock: true },
+            { name: "第一个心愿", desc: "完成第一件小事", unlock: false },
+            { name: "百天纪念", desc: "相识满100天", unlock: false },
+            { name: "生日惊喜", desc: "陪月月过生日", unlock: false },
+            { name: "双向留言", desc: "互相留言", unlock: false }
+        ],
+        album: [],
+        votes: [],
+        capsules: []
+    };
+}
+
+const moreWish = [
+    "一起吃遍城市所有甜品店", "一起去爬山看日落", "给月月写一封手写信", "一起养一盆小植物", "一起去夜市逛小吃摊",
+    "雨天和月月共撑一把伞", "一起去博物馆", "一起拼超大拼图", "一起通宵聊天看星星", "一起去露营看星空",
+    "给月月拍很多很多照片", "一起去抓娃娃", "一起做手工礼物", "一起早起吃早餐", "一起坐长途高铁旅行",
+    "互相给对方剪头发（谨慎！）", "一起去动物园", "一起去水族馆看鱼", "一起做蛋糕", "一起看雪",
+    "一起写属于我们的小故事", "一起玩双人游戏通关", "一起去泡温泉", "一起骑自行车兜风", "一起去逛书店",
+    "互相为对方挑衣服", "一起看烟花", "一起去寺庙许愿", "一起打卡网红观景台", "一起熬夜跨年",
+    "一起去采摘水果", "一起看一次话剧", "一起去漂流", "一起收集好看的明信片", "一起学习新技能",
+    "一起看海上日落", "一起去古镇散步", "一起做一次烧烤", "一起养一只小宠物", "一起去看萤火虫",
+    "一起在海边散步", "一起看脱口秀", "一起打卡各地早餐", "一起放风筝", "一起写愿望瓶埋起来",
+    "一起体验陶艺", "一起去看漫展", "一起骑行环湖", "一起吃火锅吃到饱", "一起在山顶看日出",
+    "一起做手账记录日常", "一起去滑雪", "一起看老电影", "一起逛跳蚤市场", "一起写情书交换",
+    "一起去小岛短途旅行", "一起在家煮火锅", "一起看一次流星雨", "一起打卡所有公园", "一起DIY饰品",
+    "一起坐摩天轮", "一起体验密室逃脱", "一起做早餐便当", "一起看舞台剧", "一起收集车票门票",
+    "一起徒步短途路线", "一起去水上乐园", "一起在家搭帐篷", "一起录双人vlog", "一起学一首双人歌",
+    "一起去打卡海边灯塔", "一起品尝各地特色小吃", "一起写时间胶囊", "一起在山顶露营", "一起完成100件事"
+];
+
+let data;
+
+function loadData() {
+    const saved = localStorage.getItem("loveData");
+    if (!saved) {
+        const init = getDefaultData();
+        init.wishList.push(...moreWish.map(text => ({ text, done: false, subTask: "" })));
+        localStorage.setItem("loveData", JSON.stringify(init));
+        data = init;
+    } else {
+        try {
+            data = JSON.parse(saved);
+        } catch (e) {
+            alert("数据损坏，已重置为新数据");
+            const init = getDefaultData();
+            init.wishList.push(...moreWish.map(text => ({ text, done: false, subTask: "" })));
+            localStorage.setItem("loveData", JSON.stringify(init));
+            data = init;
+        }
+    }
+
+    if (!data.wishList) data.wishList = [];
+    if (!data.chat) data.chat = [];
+    if (!data.messages) data.messages = [];
+    if (!data.diary) data.diary = [];
+    if (!data.mood) data.mood = [];
+    if (!data.achievement) data.achievement = [];
+    if (!data.album) data.album = [];
+    if (!data.votes) data.votes = [];
+    if (!data.capsules) data.capsules = [];
+    if (typeof data.score !== "number") data.score = 0;
+}
+
+function saveData() {
+    localStorage.setItem("loveData", JSON.stringify(data));
+}
+
+function showToast(txt) {
+    const t = document.getElementById("toast");
+    t.innerText = txt;
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 2200);
+}
+
+function loginCheck() {
+    const pwd = document.getElementById("pwdInput").value;
+    if (pwd === CONFIG.password) {
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("mainPage").classList.remove("hidden");
+        renderAll();
+        startCanvas();
+        checkBirthday();
+        showToast("欢迎进入月月恋爱系统💖");
+    } else {
+        alert("密码错误，请重新输入");
+    }
+}
+
+function changePassword() {
+    const np = document.getElementById("newPwdInput").value.trim();
+    if (!np) return alert("请输入新密码");
+    CONFIG.password = np;
+    showToast("密码修改成功！记住新密码");
+    document.getElementById("newPwdInput").value = "";
+}
+
+function changeTheme(cls) {
+    document.body.className = cls;
+    localStorage.setItem("themeSave", cls);
+}
+
+function drawLot() {
+    const item = CONFIG.lotList[Math.floor(Math.random() * CONFIG.lotList.length)];
+    document.getElementById("lotResult").innerHTML = `<h3>${item.level}</h3><p>${item.text}</p>`;
+}
+
+function calcDate() {
+    const now = new Date();
+    const dayDiff = Math.floor((now - CONFIG.meetDate) / (1000 * 3600 * 24));
+    document.getElementById("dayCount").innerText = `${dayDiff} 天`;
+
+    let nextBirth = new Date(CONFIG.birthday);
+    nextBirth.setFullYear(now.getFullYear());
+    if (nextBirth < now) nextBirth.setFullYear(now.getFullYear() + 1);
+    const birthDayLeft = Math.ceil((nextBirth - now) / (1000 * 3600 * 24));
+    document.getElementById("birthdayCount").innerText = `${birthDayLeft} 天`;
+    document.getElementById("scoreNum").innerText = data.score;
+}
+
+function checkBirthday() {
+    const now = new Date();
+    if (now.getDate() === CONFIG.birthday.getDate() && now.getMonth() === CONFIG.birthday.getMonth()) {
+        document.getElementById("fireworkModal").classList.add("show");
+        setTimeout(() => document.getElementById("fireworkModal").classList.remove("show"), 8000);
+    }
+}
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+        if (btn.dataset.tab === "moodChart") drawMoodChart();
+    };
+});
+
+function renderWish() {
+    const box = document.getElementById("wishListBox");
+    box.innerHTML = "";
+
+    if (!data.wishList || !Array.isArray(data.wishList)) return;
+
+    data.wishList.forEach((item, idx) => {
+        const div = document.createElement("div");
+        div.className = "wish-item";
+        div.innerHTML = `
+        <div class="wish-top">
+            <input type="checkbox" ${item.done ? "checked" : ""} onchange="toggleWish(${idx})">
+            <span class="${item.done ? "wish-complete" : ""}">${item.text || "未命名愿望"}</span>
+        </div>
+        ${item.subTask ? `<div class="sub-task-box"><div class="sub-item">📌子任务：${item.subTask}</div></div>` : ""}
+        `;
+        box.appendChild(div);
+    });
+
+    const total = data.wishList.length;
+    const doneNum = data.wishList.filter(x => x.done).length;
+    document.getElementById("wishTotal").innerText = total;
+    document.getElementById("wishDone").innerText = doneNum;
+    document.getElementById("wishPercent").innerText = Math.round(doneNum / total * 100) + "%";
+    saveData();
+}
+
+function toggleWish(index) {
+    data.wishList[index].done = !data.wishList[index].done;
+    if (data.wishList[index].done) {
+        data.score += 10;
+        showToast("✅完成心愿，+10爱情积分！");
+    }
+    renderWish();
+    calcDate();
+}
+
+function addNewWish() {
+    const text = document.getElementById("newWishInput").value.trim();
+    const sub = document.getElementById("subTaskInput").value.trim();
+    if (!text) return;
+    data.wishList.push({ text, done: false, subTask: sub });
+    document.getElementById("newWishInput").value = "";
+    document.getElementById("subTaskInput").value = "";
+    renderWish();
+}
+
+function renderChat() {
+    const box = document.getElementById("chatBox");
+    box.innerHTML = "";
+
+    if (!data.chat || !Array.isArray(data.chat)) return;
+
+    data.chat.forEach(m => {
+        const div = document.createElement("div");
+        div.className = m.sender === "me" ? "msg-me" : "msg-yueyue";
+        div.innerHTML = `<span class="msg-bubble">${m.content}<br><small style="opacity:0.7;font-size:11px">${m.time}</small></span>`;
+        box.appendChild(div);
+    });
+    box.scrollTop = box.scrollHeight;
+}
+
+function sendChatMsg() {
+    const sender = document.getElementById("chatSender").value;
+    const content = document.getElementById("chatInput").value.trim();
+    if (!content) return;
+    data.chat.push({ sender, content, time: new Date().toLocaleString() });
+    document.getElementById("chatInput").value = "";
+    renderChat();
+    saveData();
+    showToast("收到新消息💌");
+}
+
+function renderMsg() {
+    const box = document.getElementById("msgBox");
+    box.innerHTML = "";
+
+    if (!data.messages || !Array.isArray(data.messages)) return;
+
+    data.messages.forEach((m, idx) => {
+        const div = document.createElement("div");
+        div.className = "msg-card";
+        let imgHtml = m.img ? `<img src="${m.img}" style="max-width:200px;border-radius:8px">` : "";
+        div.innerHTML = `<b>${m.sender}：</b><p>${m.content}</p>${imgHtml}<small>${m.time}</small><br><button class="del-btn" onclick="delMsg(${idx})">删除</button>`;
+        box.appendChild(div);
+    });
+}
+
+function delMsg(idx) {
+    data.messages.splice(idx, 1);
+    renderMsg();
+    saveData();
+}
+
+function addMessage() {
+    const sender = document.getElementById("msgSender").value === "me" ? "我" : "月月";
+    const content = document.getElementById("msgContent").value.trim();
+    const file = document.getElementById("msgImgUpload").files[0];
+    if (!content && !file) return;
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            data.messages.push({ sender, content, img: e.target.result, time: new Date().toLocaleString() });
+            document.getElementById("msgContent").value = "";
+            renderMsg();
+            saveData();
+            showToast("留言发送成功");
+        };
+        reader.readAsDataURL(file);
+    } else {
+        data.messages.push({ sender, content, img: "", time: new Date().toLocaleString() });
+        document.getElementById("msgContent").value = "";
+        renderMsg();
+        saveData();
+        showToast("留言发送成功");
+    }
+}
+
+function renderDiary() {
+    const box = document.getElementById("diaryList");
+    box.innerHTML = "";
+
+    if (!data.diary || !Array.isArray(data.diary)) return;
+
+    data.diary.forEach((d, idx) => {
+        const div = document.createElement("div");
+        div.className = "msg-card";
+        div.innerHTML = `<b>${d.time}</b><p>${d.content}</p><button class="del-btn" onclick="delDiary(${idx})">删除</button>`;
+        box.appendChild(div);
+    });
+}
+
+function delDiary(idx) {
+    data.diary.splice(idx, 1);
+    renderDiary();
+    saveData();
+}
+
+function saveDiary() {
+    const text = document.getElementById("diaryInput").value.trim();
+    if (!text) return;
+    data.diary.push({ content: text, time: new Date().toLocaleString() });
+    document.getElementById("diaryInput").value = "";
+    renderDiary();
+    saveData();
+    showToast("日记保存完成🔒");
+}
+
+function addMood(val) {
+    if (!data.mood || !Array.isArray(data.mood)) data.mood = [];
+    data.mood.push({ score: val, time: new Date().toLocaleDateString() });
+    saveData();
+    drawMoodChart();
+    showToast("心情已记录❤️");
+}
+
+function drawMoodChart() {
+    const ctx = document.getElementById("moodCanvas").getContext("2d");
+    const labels = data.mood.map(i => i.time);
+    const scores = data.mood.map(i => i.score);
+
+    new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "心情指数",
+                data: scores,
+                borderColor: "#ff7cb8",
+                backgroundColor: "rgba(255,124,184,0.1)",
+                fill: true
+            }]
+        }
+    });
+}
+
+function renderAchievement() {
+    const box = document.getElementById("achiBox");
+    box.innerHTML = "";
+
+    if (!data.achievement || !Array.isArray(data.achievement)) return;
+
+    data.achievement.forEach(achi => {
+        const div = document.createElement("div");
+        div.className = "achi-item " + (achi.unlock ? "achi-unlock" : "");
+        div.innerHTML = `<h4>${achi.name}</h4><p>${achi.desc}</p>`;
+        box.appendChild(div);
+    });
+}
+
+function uploadPhoto() {
+    const fileList = document.getElementById("imgUpload").files;
+    if (!data.album || !Array.isArray(data.album)) data.album = [];
+
+    for (let file of fileList) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            data.album.push(e.target.result);
+            saveData();
+            renderAlbum();
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function renderAlbum() {
+    const box = document.getElementById("albumBox");
+    box.innerHTML = "";
+
+    if (!data.album || !Array.isArray(data.album)) return;
+
+    data.album.forEach(src => {
+        const div = document.createElement("div");
+        div.className = "album-box";
+        div.innerHTML = `<img src="${src}">`;
+        box.appendChild(div);
+    });
+}
+
+function createVote() {
+    const title = document.getElementById("voteTitle").value;
+    const o1 = document.getElementById("opt1").value;
+    const o2 = document.getElementById("opt2").value;
+    if (!title || !o1 || !o2) return;
+
+    if (!data.votes || !Array.isArray(data.votes)) data.votes = [];
+    data.votes.push({ title, opt1: o1, opt2: o2, v1: 0, v2: 0 });
+    saveData();
+    renderVote();
+}
+
+function renderVote() {
+    const box = document.getElementById("voteList");
+    box.innerHTML = "";
+
+    if (!data.votes || !Array.isArray(data.votes)) return;
+
+    data.votes.forEach((v, idx) => {
+        const div = document.createElement("div");
+        div.className = "vote-card";
+        div.innerHTML = `
+        <h4>${v.title}</h4>
+        <p>${v.opt1}：${v.v1}票 <button onclick="voteAdd(${idx},1)">投1</button></p>
+        <p>${v.opt2}：${v.v2}票 <button onclick="voteAdd(${idx},2)">投2</button></p>
+        `;
+        box.appendChild(div);
+    });
+}
+
+function voteAdd(idx, opt) {
+    if (opt === 1) data.votes[idx].v1++;
+    else data.votes[idx].v2++;
+    saveData();
+    renderVote();
+}
+
+function saveCapsule() {
+    const openDate = document.getElementById("openDate").value;
+    const text = document.getElementById("capsuleText").value.trim();
+    if (!openDate || !text) return;
+
+    if (!data.capsules || !Array.isArray(data.capsules)) data.capsules = [];
+    data.capsules.push({ openDate, text, lockTime: new Date().toLocaleString() });
+    document.getElementById("capsuleText").value = "";
+    saveData();
+    renderCapsule();
+    showToast("时间胶囊封存⏳");
+}
+
+function renderCapsule() {
+    const box = document.getElementById("capsuleList");
+    box.innerHTML = "";
+
+    if (!data.capsules || !Array.isArray(data.capsules)) return;
+
+    data.capsules.forEach(c => {
+        const now = new Date();
+        const open = new Date(c.openDate);
+        const canRead = now >= open;
+        const div = document.createElement("div");
+        div.className = "msg-card";
+
+        if (canRead) {
+            div.innerHTML = `<b>开启时间：${c.openDate}</b><p>${c.text}</p>`;
+        } else {
+            div.innerHTML = `<b>🔒未到开启日期 ${c.openDate}</b><p>内容已加密封存，等待约定时间解锁</p>`;
+        }
+        box.appendChild(div);
+    });
+}
+
+function exportAllData() {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "月月恋爱数据.json";
+    a.click();
+}
+
+function importData() {
+    const file = document.getElementById("importFile").files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (!imported || typeof imported !== "object") throw new Error("格式错误");
+            data = imported;
+            saveData();
+            renderAll();
+            showToast("数据导入成功✅");
+        } catch (err) {
+            alert("文件格式错误，导入失败");
+        }
+    };
+    reader.readAsText(file);
+}
+
+function confirmClear() {
+    if (confirm("⚠️确认清空全部恋爱记录？不可恢复！")) {
+        localStorage.removeItem("loveData");
+        location.reload();
+    }
+}
+
+function toggleAudio() {
+    const audio = document.getElementById("bgAudio");
+    if (audio.paused) audio.play();
+    else audio.pause();
+}
+
+function startCanvas() {
+    const canvas = document.getElementById("loveCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let hearts = [];
+
+    class Heart {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = canvas.height + 20;
+            this.size = Math.random() * 18 + 6;
+            this.speedY = Math.random() * 1.5 + 0.6;
+            this.opacity = Math.random() * 0.6 + 0.2;
+        }
+
+        update() {
+            this.y -= this.speedY;
+        }
+
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = this.opacity;
+            ctx.fillStyle = "var(--main)";
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.bezierCurveTo(this.x, this.y - this.size / 2, this.x - this.size, this.y - this.size / 2, this.x - this.size, this.y - this.size);
+            ctx.bezierCurveTo(this.x - this.size, this.y - this.size * 1.5, this.x, this.y - this.size * 1.2, this.x, this.y - this.size * 0.6);
+            ctx.bezierCurveTo(this.x, this.y - this.size * 1.2, this.x + this.size, this.y - this.size * 1.5, this.x + this.size, this.y - this.size);
+            ctx.bezierCurveTo(this.x + this.size, this.y - this.size / 2, this.x, this.y - this.size / 2, this.x, this.y);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (Math.random() < 0.04) hearts.push(new Heart());
+        hearts.forEach((h, i) => {
+            h.update();
+            h.draw();
+            if (h.y < -30) hearts.splice(i, 1);
+        });
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+    window.onresize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    };
+}
+
+function randomSentence() {
+    const s = CONFIG.sweetSentences[Math.floor(Math.random() * CONFIG.sweetSentences.length)];
+    document.getElementById("sweetSentence").innerText = s;
+}
+
+function renderAll() {
+    calcDate();
+    renderWish();
+    renderChat();
+    renderMsg();
+    renderDiary();
+    renderAchievement();
+    renderAlbum();
+    renderVote();
+    renderCapsule();
+    randomSentence();
+
+    if (localStorage.getItem("themeSave")) {
+        changeTheme(localStorage.getItem("themeSave"));
+    }
+
+    setInterval(() => {
+        calcDate();
+        randomSentence();
+    }, 1000 * 60);
+}
+
+window.onload = () => {
+    loadData();
+    setTimeout(() => {
+        document.getElementById("loadingScreen").style.opacity = 0;
+        setTimeout(() => document.getElementById("loadingScreen").style.display = "none", 800);
+    }, 1000);
+};
+</script>
+</body>
+</html>
